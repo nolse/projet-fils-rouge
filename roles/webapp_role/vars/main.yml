@@ -1,0 +1,3 @@
+---
+# Variables fixes du rôle webapp (non surchargeables depuis l'inventaire)
+webapp_deploy_dir: /opt/ic-webapp

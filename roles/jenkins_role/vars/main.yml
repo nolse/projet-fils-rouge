@@ -1,0 +1,3 @@
+---
+# Variables fixes du rôle jenkins (non surchargeables depuis l'inventaire)
+jenkins_deploy_dir: /opt/jenkins

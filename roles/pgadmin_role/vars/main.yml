@@ -1,0 +1,3 @@
+---
+# Variables fixes du rôle pgadmin (non surchargeables depuis l'inventaire)
+pgadmin_deploy_dir: /opt/pgadmin

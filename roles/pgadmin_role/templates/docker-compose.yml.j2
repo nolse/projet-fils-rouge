@@ -1,0 +1,28 @@
+# Template Jinja2 — les variables sont injectées par Ansible au déploiement
+version: "3.8"
+services:
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      # Identifiants de connexion à l'interface web pgAdmin
+      PGADMIN_DEFAULT_EMAIL: "{{ pgadmin_email }}"
+      PGADMIN_DEFAULT_PASSWORD: "{{ pgadmin_password }}"
+    ports:
+      # Port 5050 sur l'hôte → port 80 interne pgAdmin
+      - "{{ pgadmin_port }}:80"
+    volumes:
+      # Persistance des données pgAdmin (sessions, connexions sauvegardées)
+      - pgadmin_data:/var/lib/pgadmin
+      # Préconfiguration automatique du serveur PostgreSQL au démarrage
+      - ./servers.json:/pgadmin4/servers.json
+    networks:
+      - pgadmin_network
+    restart: always
+
+networks:
+  pgadmin_network:
+    driver: bridge
+
+volumes:
+  pgadmin_data:

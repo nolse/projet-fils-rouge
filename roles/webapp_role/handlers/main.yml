@@ -1,0 +1,6 @@
+---
+# Handler déclenché automatiquement si le docker-compose change
+- name: restart webapp
+  community.docker.docker_compose_v2:
+    project_src: "{{ webapp_deploy_dir }}"
+    state: restarted

@@ -1,0 +1,40 @@
+# Template Jinja2 — les variables sont injectées par Ansible au déploiement
+version: "3.8"
+services:
+  db:
+    image: postgres:13
+    container_name: odoo_db
+    environment:
+      POSTGRES_USER: "{{ odoo_db_user }}"
+      POSTGRES_PASSWORD: "{{ odoo_db_password }}"
+      POSTGRES_DB: postgres
+    volumes:
+      - odoo_db_data:/var/lib/postgresql/data
+    networks:
+      - odoo_network
+    restart: always
+
+  odoo:
+    image: odoo:{{ odoo_version }}
+    container_name: odoo_web
+    depends_on:
+      - db
+    ports:
+      - "{{ odoo_port }}:8069"
+    environment:
+      HOST: db
+      USER: "{{ odoo_db_user }}"
+      PASSWORD: "{{ odoo_db_password }}"
+    volumes:
+      - odoo_web_data:/var/lib/odoo
+    networks:
+      - odoo_network
+    restart: always
+
+networks:
+  odoo_network:
+    driver: bridge
+
+volumes:
+  odoo_db_data:
+  odoo_web_data:

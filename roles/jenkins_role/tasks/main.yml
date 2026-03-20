@@ -1,0 +1,75 @@
+---
+# ============================================================
+# Rôle jenkins_role — Déploiement Jenkins via Docker
+# Basé sur l'image sadofrazer/jenkins (CentOS 7 + Jenkins + Nginx)
+# Ports exposés :
+#   - 8080 : Jenkins UI
+#   - 50000 : agents Jenkins (JNLP)
+#   - 22000 : SSH
+# Le socket Docker est monté pour permettre à Jenkins
+# de lancer des builds Docker depuis les pipelines
+# ============================================================
+
+# --- 1. Prérequis système ---
+- name: Installer les dépendances système
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - python3-pip
+    state: present
+    update_cache: true
+
+- name: Installer le module Python docker (requis par Ansible)
+  ansible.builtin.pip:
+    name: docker
+    state: present
+
+# --- 2. Installation Docker ---
+- name: Ajouter la clé GPG Docker
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Ajouter le dépôt officiel Docker
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable"
+    state: present
+
+- name: Installer Docker Engine + Compose plugin
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Démarrer et activer Docker au boot
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+# --- 3. Déploiement Jenkins ---
+- name: Créer le répertoire de déploiement Jenkins
+  ansible.builtin.file:
+    path: "{{ jenkins_deploy_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Déployer le docker-compose Jenkins (depuis template Jinja2)
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ jenkins_deploy_dir }}/docker-compose.yml"
+    mode: "0644"
+  notify: restart jenkins
+
+- name: Lancer Jenkins via Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ jenkins_deploy_dir }}"
+    state: present
+    pull: always

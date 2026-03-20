@@ -1,0 +1,10 @@
+---
+# Valeurs par défaut — surchargeables depuis le playbook ou l'inventaire
+# L'image Docker de ic-webapp publiée sur Docker Hub
+webapp_image: alphabalde/ic-webapp:1.0
+# Port d'exposition sur l'hôte
+webapp_port: 80
+# URLs des applications — lues depuis release.txt
+# Ces valeurs seront écrasées dynamiquement par les IPs Terraform dans le playbook
+odoo_url: https://odoo.com
+pgadmin_url: https://pgadmin.org

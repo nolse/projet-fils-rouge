@@ -1,0 +1,3 @@
+---
+# Variables fixes du rôle odoo (non surchargeables depuis l'inventaire)
+odoo_deploy_dir: /opt/odoo

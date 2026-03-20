@@ -1,0 +1,6 @@
+---
+# Valeurs par défaut — surchargeables depuis le playbook ou l'inventaire
+odoo_version: "13.0"
+odoo_port: 8069
+odoo_db_user: odoo
+odoo_db_password: odoo

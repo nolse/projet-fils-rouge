@@ -1,0 +1,9 @@
+---
+# ============================================================
+# requirements.yml — Collections Ansible requises
+# Installation : ansible-galaxy collection install -r requirements.yml
+# ============================================================
+collections:
+  # Collection Docker — modules docker_compose_v2, docker_container, etc.
+  - name: community.docker
+    version: ">=3.0.0"

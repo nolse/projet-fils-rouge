@@ -1,0 +1,32 @@
+---
+# ============================================================
+# Inventaire Ansible — EXEMPLE
+# Ne pas utiliser directement !
+# Pour générer le vrai fichier avec les IPs Terraform :
+#   1. cd ~/cursus-devops/projet_fil_rouge_infra/app
+#   2. terraform apply
+#   3. cd ~/cursus-devops/projet-fils-rouge
+#   4. bash inventaire/generate_inventory.sh
+# ============================================================
+
+all:
+  vars:
+    ansible_user: ubuntu
+    ansible_ssh_private_key_file: ~/.ssh/projet-fil-rouge-key.pem
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+  children:
+    jenkins:
+      hosts:
+        jenkins_server:
+          ansible_host: X.X.X.X   # Remplacé automatiquement par generate_inventory.sh
+
+    webapp:
+      hosts:
+        webapp_server:
+          ansible_host: X.X.X.X
+
+    odoo:
+      hosts:
+        odoo_server:
+          ansible_host: X.X.X.X

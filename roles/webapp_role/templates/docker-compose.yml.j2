@@ -1,0 +1,15 @@
+# Template Jinja2 — variables injectées par Ansible au déploiement
+# ic-webapp lit release.txt via awk pour récupérer ODOO_URL et PGADMIN_URL
+version: "3.8"
+services:
+  ic-webapp:
+    image: {{ webapp_image }}
+    container_name: ic-webapp
+    ports:
+      # Port 80 sur l'hôte → port 8080 interne ic-webapp
+      - "{{ webapp_port }}:8080"
+    environment:
+      # URLs extraites de release.txt et passées au conteneur
+      - ODOO_URL={{ odoo_url }}
+      - PGADMIN_URL={{ pgadmin_url }}
+    restart: always

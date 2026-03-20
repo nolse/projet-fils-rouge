@@ -1,0 +1,48 @@
+# Docker-compose pour le déploiement d'Odoo 13.0 + PostgreSQL
+# Réseau et volume créés automatiquement par Docker Compose
+
+version: "3.8"
+
+services:
+  # Base de données PostgreSQL requise par Odoo
+  db:
+    image: postgres:13
+    container_name: odoo_db
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: postgres
+    volumes:
+      # Persistance des données PostgreSQL
+      - odoo_db_data:/var/lib/postgresql/data
+    networks:
+      - odoo_network
+
+  # Application Odoo 13.0
+  odoo:
+    image: odoo:13.0
+    container_name: odoo_web
+    depends_on:
+      - db
+    ports:
+      # Port exposé sur l'hôte : port interne Odoo
+      - "8069:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: odoo
+    volumes:
+      # Persistance des données Odoo
+      - odoo_web_data:/var/lib/odoo
+    networks:
+      - odoo_network
+
+# Réseau dédié pour isoler les services Odoo
+networks:
+  odoo_network:
+    driver: bridge
+
+# Volumes pour la persistance des données
+volumes:
+  odoo_db_data:
+  odoo_web_data:

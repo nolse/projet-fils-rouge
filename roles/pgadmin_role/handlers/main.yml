@@ -1,0 +1,6 @@
+---
+# Handler déclenché automatiquement si docker-compose.yml ou servers.json changent
+- name: restart pgadmin
+  community.docker.docker_compose_v2:
+    project_src: "{{ pgadmin_deploy_dir }}"
+    state: restarted

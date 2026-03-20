@@ -1,0 +1,83 @@
+---
+# ============================================================
+# Rôle webapp_role — Déploiement ic-webapp sur serveur webapp
+# Ce serveur héberge :
+#   - ic-webapp (port 80)  : site vitrine IC Group
+#   - pgAdmin  (port 5050) : interface d'administration PostgreSQL
+#
+# ic-webapp nécessite 2 variables d'environnement :
+#   - ODOO_URL    : URL publique du serveur Odoo
+#   - PGADMIN_URL : URL publique de pgAdmin
+# Ces URLs sont lues depuis le fichier release.txt du projet
+# ============================================================
+
+# --- 1. Prérequis système ---
+- name: Installer les dépendances système
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - python3-pip
+    state: present
+    update_cache: true
+
+- name: Installer le module Python docker (requis par Ansible)
+  ansible.builtin.pip:
+    name: docker
+    state: present
+
+# --- 2. Installation Docker ---
+- name: Ajouter la clé GPG Docker
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Ajouter le dépôt officiel Docker
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable"
+    state: present
+
+- name: Installer Docker Engine + Compose plugin
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Démarrer et activer Docker au boot
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+# --- 3. Déploiement ic-webapp ---
+- name: Créer le répertoire de déploiement webapp
+  ansible.builtin.file:
+    path: "{{ webapp_deploy_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copier le fichier release.txt (contient ODOO_URL et PGADMIN_URL)
+  # release.txt est lu par le docker-compose pour injecter les URLs dans le conteneur
+  ansible.builtin.copy:
+    src: release.txt
+    dest: "{{ webapp_deploy_dir }}/release.txt"
+    mode: "0644"
+
+- name: Déployer le docker-compose ic-webapp (depuis template Jinja2)
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ webapp_deploy_dir }}/docker-compose.yml"
+    mode: "0644"
+  notify: restart webapp
+
+- name: Lancer ic-webapp via Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ webapp_deploy_dir }}"
+    state: present
+    pull: always

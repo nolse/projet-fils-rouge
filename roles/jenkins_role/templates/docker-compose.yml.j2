@@ -1,0 +1,28 @@
+# Template Jinja2 — variables injectées par Ansible au déploiement
+# Image source : sadofrazer/jenkins (CentOS 7 + Jenkins + Nginx)
+# Le mode privileged est requis pour systemd à l'intérieur du conteneur
+version: '2'
+services:
+  jenkins:
+    image: {{ jenkins_image }}
+    container_name: jenkins
+    restart: always
+    ports:
+      # Interface web Jenkins
+      - "{{ jenkins_port }}:8080"
+      # SSH vers le conteneur Jenkins
+      - "{{ jenkins_ssh_port }}:22"
+      # Communication agents Jenkins (JNLP)
+      - "{{ jenkins_agent_port }}:50000"
+    privileged: true
+    volumes:
+      # Persistance des données Jenkins (jobs, config, plugins)
+      - jenkins_home:/var/lib/jenkins/
+      # Accès au socket Docker hôte — permet à Jenkins de lancer des builds Docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Requis pour systemd dans le conteneur CentOS
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+
+volumes:
+  jenkins_home:
+    driver: local

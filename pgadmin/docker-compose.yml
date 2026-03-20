@@ -1,0 +1,32 @@
+# Docker-compose pour le déploiement de pgAdmin4
+# Interface graphique d'administration PostgreSQL
+
+version: "3.8"
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      # Identifiants de connexion à l'interface pgAdmin
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      # Port exposé sur l'hôte : port interne pgAdmin
+      - "5050:80"
+    volumes:
+      # Persistance des données pgAdmin (connexions sauvegardées)
+      - pgadmin_data:/var/lib/pgadmin
+      # Fichier de préconfiguration des serveurs BDD
+      - ./servers.json:/pgadmin4/servers.json
+    networks:
+      - pgadmin_network
+
+# Réseau dédié pour pgAdmin
+networks:
+  pgadmin_network:
+    driver: bridge
+
+# Volume pour la persistance des données pgAdmin
+volumes:
+  pgadmin_data:

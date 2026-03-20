@@ -1,0 +1,63 @@
+---
+# ============================================================
+# Playbook principal — Projet Fil Rouge IC Group
+# Orchestration du déploiement complet :
+#   - webapp  : ic-webapp (port 80) + pgAdmin (port 5050)
+#   - odoo    : Odoo 13 (port 8069) + PostgreSQL (port 5432)
+#   - jenkins : Jenkins (port 8080)
+#
+# Prérequis :
+#   1. terraform apply effectué
+#   2. bash inventaire/generate_inventory.sh exécuté
+#   3. ansible-galaxy collection install community.docker
+#
+# Utilisation :
+#   ansible-playbook -i inventaire/hosts.yml playbook.yml
+# ============================================================
+
+# ============================================================
+# PLAY 1 — Déploiement Odoo + PostgreSQL
+# Cible : serveur odoo
+# ============================================================
+- name: Déploiement Odoo 13 + PostgreSQL
+  hosts: odoo
+  become: true   # Exécution en sudo (requis pour apt, docker, etc.)
+  vars:
+    # Surcharge des defaults — credentials Odoo
+    odoo_version: "13.0"
+    odoo_port: 8069
+    odoo_db_user: odoo
+    odoo_db_password: odoo
+  roles:
+    - odoo_role
+
+# ============================================================
+# PLAY 2 — Déploiement ic-webapp + pgAdmin
+# Cible : serveur webapp
+# Les URLs Odoo et pgAdmin sont construites dynamiquement
+# depuis les IPs récupérées dans l'inventaire Ansible
+# ============================================================
+- name: Déploiement ic-webapp + pgAdmin
+  hosts: webapp
+  become: true
+  vars:
+    # URL publique d'Odoo — construite depuis l'IP du serveur odoo
+    # hostvars récupère les variables d'un autre host de l'inventaire
+    odoo_url: "http://{{ hostvars['odoo_server']['ansible_host'] }}:8069"
+    # URL publique de pgAdmin — construite depuis l'IP du serveur webapp lui-même
+    pgadmin_url: "http://{{ hostvars['webapp_server']['ansible_host'] }}:5050"
+    # IP du serveur Odoo pour la connexion pgAdmin → PostgreSQL
+    pgadmin_db_host: "{{ hostvars['odoo_server']['ansible_host'] }}"
+  roles:
+    - webapp_role
+    - pgadmin_role
+
+# ============================================================
+# PLAY 3 — Déploiement Jenkins
+# Cible : serveur jenkins
+# ============================================================
+- name: Déploiement Jenkins
+  hosts: jenkins
+  become: true
+  roles:
+    - jenkins_role
